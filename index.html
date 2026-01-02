@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EUR ↔ SGD Change Calculator</title>
+  <meta name="description" content="Single-page calculator for EUR and SGD: converts and computes change due." />
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111a2f; --muted:#9fb0d0; --text:#eef3ff;
+      --line:rgba(255,255,255,.10); --good:#34d399; --bad:#fb7185; --accent:#60a5fa;
+      --shadow: 0 18px 55px rgba(0,0,0,.45);
+      --radius:18px;
+      font-synthesis-weight:none;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; background: radial-gradient(900px 500px at 20% 10%, rgba(96,165,250,.18), transparent 60%),
+               radial-gradient(900px 500px at 80% 30%, rgba(52,211,153,.12), transparent 60%),
+               var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      line-height:1.35;
+    }
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 28px 16px 60px; }
+    header{ display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1{ margin:0; font-size: clamp(22px, 3vw, 34px); letter-spacing:.2px; }
+    .sub{ margin:6px 0 0; color:var(--muted); max-width: 62ch; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      padding:10px 12px; border-radius: 999px;
+      color: var(--muted); font-size: 13px;
+    }
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: rgba(17,26,47,.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .card h2{
+      margin: 0 0 12px;
+      font-size: 16px;
+      color: #dbe7ff;
+      letter-spacing:.2px;
+    }
+    .row{ display:grid; grid-template-columns: 1fr 140px; gap: 10px; margin: 10px 0; }
+    @media (max-width: 480px){
+      .row{ grid-template-columns: 1fr; }
+    }
+    label{ display:block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input, select, button{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 12px 12px;
+      font-size: 16px;
+      outline: none;
+    }
+    input::placeholder{ color: rgba(159,176,208,.55); }
+    input:focus, select:focus, button:focus{ border-color: rgba(96,165,250,.55); box-shadow: 0 0 0 4px rgba(96,165,250,.12); }
+    select{ cursor:pointer; }
+    .muted{ color: var(--muted); font-size: 13px; }
+    .ratebox{
+      display:flex; flex-wrap:wrap; gap:10px;
+      align-items:center; justify-content:space-between;
+      padding: 12px; border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+    }
+    .ratebox strong{ font-weight: 650; }
+    .inline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn{
+      cursor:pointer;
+      user-select:none;
+      background: rgba(96,165,250,.14);
+      border-color: rgba(96,165,250,.25);
+      transition: transform .04s ease, background .15s ease;
+      font-weight: 600;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{
+      background: rgba(255,255,255,.05);
+      border-color: var(--line);
+      font-weight: 600;
+    }
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 540px){
+      .kpi{ grid-template-columns: 1fr; }
+    }
+    .kpi .box{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .big{
+      font-size: clamp(22px, 3vw, 34px);
+      margin: 6px 0 0;
+      letter-spacing:.2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .status{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+    }
+    .status.bad{ border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.08); color: #ffd6de; }
+    .status.good{ border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.08); color: #d9fff0; }
+    footer{ margin-top: 14px; color: var(--muted); font-size: 12px; }
+    a{ color: #b9d6ff; text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+    .sr{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>EUR ↔ SGD Change Calculator</h1>
+        <p class="sub">Enter the item price and the amount paid (in EUR or SGD). The page converts and computes the change due in both currencies.</p>
+      </div>
+      <div class="pill" aria-live="polite">
+        <span id="rateBadge">Loading rate…</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card" aria-labelledby="calcTitle">
+        <h2 id="calcTitle">Calculator</h2>
+
+        <div class="ratebox">
+          <div>
+            <div class="muted">Exchange rate source</div>
+            <div><strong>Frankfurter</strong> (ECB reference rates)</div>
+          </div>
+          <div class="inline">
+            <button class="btn secondary" id="refreshBtn" type="button">Refresh rate</button>
+            <button class="btn secondary" id="swapBtn" type="button" title="Swap input currencies">Swap inputs</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="price">Item price</label>
+            <input id="price" inputmode="decimal" placeholder="e.g., 19.90" />
+          </div>
+          <div>
+            <label for="priceCur">Currency</label>
+            <select id="priceCur">
+              <option value="EUR">EUR</option>
+              <option value="SGD">SGD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="paid">Amount paid</label>
+            <input id="paid" inputmode="decimal" placeholder="e.g., 50" />
+          </div>
+          <div>
+            <label for="paidCur">Currency</label>
+            <select id="paidCur">
+              <option value="EUR">EUR</option>
+              <option value="SGD">SGD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="customRate">Optional: override rate (SGD per 1 EUR)</label>
+            <input id="customRate" inputmode="decimal" placeholder="leave empty for live rate" />
+          </div>
+          <div>
+            <label for="rounding">Rounding</label>
+            <select id="rounding">
+              <option value="2" selected>2 decimals</option>
+              <option value="3">3 decimals</option>
+              <option value="0">0 decimals</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="status" class="status" role="status">
+          Enter values to calculate.
+        </div>
+
+        <footer>
+          Tip: You can use either “.” or “,” as a decimal separator.
+        </footer>
+      </section>
+
+      <aside class="card" aria-labelledby="outTitle">
+        <h2 id="outTitle">Results</h2>
+
+        <div class="kpi">
+          <div class="box">
+            <div class="muted">Change due (EUR)</div>
+            <div class="big" id="outEur">—</div>
+          </div>
+          <div class="box">
+            <div class="muted">Change due (SGD)</div>
+            <div class="big" id="outSgd">—</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="box">
+          <div class="muted">Reference</div>
+          <div id="ref" style="margin-top:6px; font-variant-numeric: tabular-nums;">—</div>
+        </div>
+
+        <div style="margin-top:12px" class="box">
+          <div class="muted">Converted totals (for transparency)</div>
+          <div id="debug" style="margin-top:6px; font-variant-numeric: tabular-nums;">—</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // --- Utilities
+    const $$ = (id) => document.getElementById(id);
+
+    function parseMoney(raw){
+      if(!raw) return NaN;
+      const s = String(raw).trim().replace(/\s+/g,'').replace(',', '.');
+      // allow leading +/-, digits, one dot
+      if(!/^[+-]?\d*(\.\d*)?$/.test(s)) return NaN;
+      return Number(s);
+    }
+
+    function fmt(amount, cur, decimals){
+      if(!isFinite(amount)) return "—";
+      const nf = new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: cur,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+      return nf.format(amount);
+    }
+
+    function clampDecimals(n){
+      return Math.max(0, Math.min(6, n|0));
+    }
+
+    // --- State
+    let liveRateSGDperEUR = NaN;  // number
+    let rateDate = null;
+
+    async function fetchRate(){
+      // Frankfurter provides ECB reference rates (daily). Endpoint returns EUR base by default.
+      // Using api.frankfurter.app because it is widely deployed and returns JSON with CORS.
+      const url = "https://api.frankfurter.app/latest?from=EUR&to=SGD";
+      const res = await fetch(url, { cache: "no-store" });
+      if(!res.ok) throw new Error("Rate fetch failed");
+      const data = await res.json();
+      const r = data?.rates?.SGD;
+      if(!(typeof r === "number" && isFinite(r))) throw new Error("Unexpected rate payload");
+      liveRateSGDperEUR = r;
+      rateDate = data?.date || null;
+      updateRateBadge();
+      recalc();
+    }
+
+    function updateRateBadge(){
+      const badge = $$("rateBadge");
+      if(isFinite(liveRateSGDperEUR)){
+        const inv = 1 / liveRateSGDperEUR;
+        badge.textContent = `1 EUR = ${liveRateSGDperEUR.toFixed(4)} SGD • 1 SGD = ${inv.toFixed(4)} EUR` + (rateDate ? ` • date: ${rateDate}` : "");
+        $$("ref").textContent = `Rate date: ${rateDate || "—"} | 1 EUR = ${liveRateSGDperEUR.toFixed(6)} SGD`;
+      }else{
+        badge.textContent = "Rate unavailable (enter a manual rate).";
+        $$("ref").textContent = "—";
+      }
+    }
+
+    function getActiveRate(){
+      const manual = parseMoney($$("customRate").value);
+      if(isFinite(manual) && manual > 0) return manual;
+      return liveRateSGDperEUR;
+    }
+
+    function toEUR(amount, cur, rateSGDperEUR){
+      if(cur === "EUR") return amount;
+      // cur === "SGD"
+      return amount / rateSGDperEUR;
+    }
+
+    function toSGD(amount, cur, rateSGDperEUR){
+      if(cur === "SGD") return amount;
+      // cur === "EUR"
+      return amount * rateSGDperEUR;
+    }
+
+    function recalc(){
+      const decimals = clampDecimals(parseInt($$("rounding").value, 10));
+      const rate = getActiveRate();
+
+      const price = parseMoney($$("price").value);
+      const paid  = parseMoney($$("paid").value);
+      const priceCur = $$("priceCur").value;
+      const paidCur  = $$("paidCur").value;
+
+      const status = $$("status");
+
+      if(!isFinite(rate) || rate <= 0){
+        $$("outEur").textContent = "—";
+        $$("outSgd").textContent = "—";
+        $$("debug").textContent = "Enter a valid exchange rate (SGD per 1 EUR).";
+        status.className = "status bad";
+        status.textContent = "No exchange rate available. Please refresh or enter a manual rate.";
+        return;
+      }
+
+      if(!isFinite(price) || !isFinite(paid)){
+        $$("outEur").textContent = "—";
+        $$("outSgd").textContent = "—";
+        $$("debug").textContent = "—";
+        status.className = "status";
+        status.textContent = "Enter values to calculate.";
+        return;
+      }
+
+      const priceEUR = toEUR(price, priceCur, rate);
+      const paidEUR  = toEUR(paid,  paidCur,  rate);
+
+      const changeEUR = paidEUR - priceEUR;
+      const changeSGD = changeEUR * rate;
+
+      $$("outEur").textContent = fmt(changeEUR, "EUR", decimals);
+      $$("outSgd").textContent = fmt(changeSGD, "SGD", decimals);
+
+      const priceSGD = toSGD(price, priceCur, rate);
+      const paidSGD  = toSGD(paid,  paidCur,  rate);
+
+      $$("debug").textContent =
+        `Price ≈ ${fmt(priceEUR, "EUR", decimals)} / ${fmt(priceSGD, "SGD", decimals)} • ` +
+        `Paid ≈ ${fmt(paidEUR, "EUR", decimals)} / ${fmt(paidSGD, "SGD", decimals)}`;
+
+      if(changeEUR < -1e-9){
+        status.className = "status bad";
+        status.textContent = "Paid amount is LESS than the price.";
+      }else{
+        status.className = "status good";
+        status.textContent = "OK — change due is shown above.";
+      }
+    }
+
+    function swapInputs(){
+      const pCur = $$("priceCur").value;
+      const aCur = $$("paidCur").value;
+      $$("priceCur").value = aCur;
+      $$("paidCur").value = pCur;
+      recalc();
+    }
+
+    // --- Wiring
+    ["price","paid","customRate"].forEach(id => {
+      $$(id).addEventListener("input", recalc);
+    });
+    ["priceCur","paidCur","rounding"].forEach(id => {
+      $$(id).addEventListener("change", recalc);
+    });
+    $$("swapBtn").addEventListener("click", swapInputs);
+    $$("refreshBtn").addEventListener("click", async () => {
+      try { await fetchRate(); }
+      catch(e){
+        liveRateSGDperEUR = NaN;
+        updateRateBadge();
+        recalc();
+      }
+    });
+
+    // Init
+    (async () => {
+      try { await fetchRate(); }
+      catch(e){
+        // fail gracefully
+        liveRateSGDperEUR = NaN;
+        updateRateBadge();
+        recalc();
+      }
+    })();
+  </script>
+</body>
+</html>
