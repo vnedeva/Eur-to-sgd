@@ -2,14 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-eur-sgd.png">
-<link rel="apple-touch-icon" href="favicon-eur-sgd.png">
-<meta name="theme-color" content="#6a00ff">
-  
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="icon" type="image/svg+xml" href="favicon-eur-sgd.svg">
   <title>Change Calculator (EUR/SGD)</title>
+
   <style>
     :root{
       /* More expressive palette */
@@ -17,7 +12,6 @@
       --bgB:#6a00ff;        /* electric purple */
       --bgC:#00d4ff;        /* cyan */
       --card:rgba(255,255,255,.92);
-      --glass:rgba(255,255,255,.18);
 
       --text:#0b1020;
       --muted:#5b647a;
@@ -60,7 +54,6 @@
       padding: 26px 14px;
     }
 
-    /* Subtle animated sheen */
     body::before{
       content:"";
       position:fixed;
@@ -134,7 +127,6 @@
       gap: 14px;
       align-items:center;
     }
-    .row.withSwap{ grid-template-columns: 1fr auto auto; }
 
     input{
       width: 100%;
@@ -151,51 +143,6 @@
       box-shadow: var(--focus), inset 0 0 0 1px rgba(255,255,255,.55);
     }
     input::placeholder{ color: rgba(91,100,122,.55); }
-
-    .swapBtn{
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      border: 1px solid rgba(109,40,255,.20);
-      background:
-        linear-gradient(135deg, rgba(0,194,255,.25), rgba(109,40,255,.20));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      user-select:none;
-      transition: transform .05s ease, filter .15s ease;
-      box-shadow: 0 10px 20px rgba(0,0,0,.08);
-    }
-    .swapBtn:hover{ filter: brightness(1.05); }
-    .swapBtn:active{ transform: translateY(1px); }
-
-    .swapIcon{ width: 22px; height: 22px; position: relative; }
-    .swapIcon:before, .swapIcon:after{
-      content:"";
-      position:absolute;
-      left:0; right:0;
-      top: 5px;
-      height: 2px;
-      background: rgba(15,23,42,.55);
-      border-radius: 2px;
-    }
-    .swapIcon:after{ top: 15px; }
-    .swapIcon .a, .swapIcon .b{
-      position:absolute;
-      width: 7px; height: 7px;
-      border-right: 2px solid rgba(15,23,42,.55);
-      border-top: 2px solid rgba(15,23,42,.55);
-      transform: rotate(45deg);
-      top: 1px;
-      right: 0px;
-    }
-    .swapIcon .b{
-      transform: rotate(225deg);
-      top: 11px;
-      left: 0px;
-      right: auto;
-    }
 
     .toggle{
       display:flex;
@@ -272,6 +219,7 @@
       gap: 10px;
       align-items:center;
       justify-content:flex-end;
+      flex-wrap:wrap;
     }
 
     .linkBtn{
@@ -330,11 +278,9 @@
       </div>
 
       <div class="label">Amount paid</div>
-      <div class="row withSwap">
+      <!-- Removed arrows between input and currency -->
+      <div class="row">
         <input id="paid" inputmode="decimal" placeholder="0.00" />
-        <button class="swapBtn" id="swapBtn" type="button" aria-label="Swap input currencies">
-          <span class="swapIcon" aria-hidden="true"><span class="a"></span><span class="b"></span></span>
-        </button>
         <div class="toggle" role="group" aria-label="Amount paid currency">
           <button id="paidEUR" class="active" type="button">EUR</button>
           <button id="paidSGD" type="button">SGD</button>
@@ -356,6 +302,7 @@
         <span id="status">Loading rate…</span>
         <div class="btnRow">
           <button class="linkBtn" id="refreshRateBtn" type="button">Refresh rate</button>
+          <button class="linkBtn" id="swapBtn" type="button">Swap</button>
           <button class="linkBtn" id="resetBtn" type="button">Reset</button>
         </div>
       </div>
@@ -480,7 +427,8 @@
       }
     }
 
-    function swapInputCurrencies(){
+    function swapCurrencies(){
+      // Swap the selected currencies for the two input fields (price & paid)
       const tmp = priceCur;
       priceCur = paidCur;
       paidCur = tmp;
@@ -516,8 +464,6 @@
     $("outEUR").addEventListener("click", () => { outCur="EUR"; setToggle("out","EUR"); recalc(); });
     $("outSGD").addEventListener("click", () => { outCur="SGD"; setToggle("out","SGD"); recalc(); });
 
-    $("swapBtn").addEventListener("click", swapInputCurrencies);
-
     $("refreshRateBtn").addEventListener("click", async () => {
       $("status").textContent = "Refreshing rate…";
       try { await fetchRate(); }
@@ -528,6 +474,7 @@
       }
     });
 
+    $("swapBtn").addEventListener("click", swapCurrencies);
     $("resetBtn").addEventListener("click", resetAll);
 
     // init
